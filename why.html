@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>???</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+html, body {
+margin: 0;
+padding: 0;
+width: 100%;
+height: 100%;
+overflow: hidden;
+font-family: 'Press Start 2P', cursive;
+background-color: black;
+cursor: none;
+position: relative;
+}
+
+/* Scanline overlay */
+body::after {
+content: "";
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+background-image: repeating-linear-gradient(
+to bottom,
+rgba(255,255,255,0.05) 0px,
+rgba(255,255,255,0.05) 1px,
+transparent 1px,
+transparent 3px
+);
+z-index: 2;
+}
+
+/* Countdown container (centers ??? and line) */
+#countdownContainer {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+z-index: 3;
+}
+
+#timer {
+font-size: 2em;
+text-align: center;
+color: #e00000;
+text-shadow: 0 0 10px #e00000, 0 0 20px #e00000, 0 0 30px #e00000;
+transition: text-shadow 0.5s ease, color 0.5s ease;
+}
+
+#line {
+width: 300px;
+height: 4px;
+background-color: #e00000;
+border-radius: 999px;
+margin-top: 20px; /* space between ??? and line */
+box-shadow: 0 0 10px #e00000, 0 0 20px #e00000, 0 0 30px #e00000;
+transition: box-shadow 0.5s ease, background-color 0.5s ease;
+}
+
+/* Glowing cursor */
+#glowCursor {
+position: fixed;
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background-color: #e00000;
+pointer-events: none;
+box-shadow: 0 0 10px #e00000, 0 0 20px #e00000, 0 0 30px #e00000;
+transform: translate(-50%, -50%);
+z-index: 1000;
+transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+/* Fullscreen video overlay */
+#introVideo {
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+object-fit: cover;
+z-index: 9999;
+}
+</style>
+</head>
+<body>
+
+<!-- Fullscreen intro video -->
+<video id="introVideo" autoplay muted playsinline>
+<!-- Replace 'FILE000-.mp4' with your own video -->
+<source src="FILE000-.mp4" type="video/mp4">
+</video>
+
+<!-- Countdown container -->
+<div id="countdownContainer">
+<div id="timer">???</div>
+<div id="line"></div>
+</div>
+
+<div id="glowCursor"></div>
+
+<script>
+const timerElement = document.getElementById('timer');
+const lineElement = document.getElementById('line');
+const glowCursor = document.getElementById('glowCursor');
+const introVideo = document.getElementById('introVideo');
+
+const targetDate = new Date('September 16, 2025 19:36:00').getTime();
+const countdownStart = new Date().getTime();
+const totalDuration = targetDate - countdownStart;
+
+// Start countdown after video ends
+function startCountdown() {
+localStorage.setItem('videoWatched', 'true');
+introVideo.style.display = 'none';
+document.getElementById('countdownContainer').style.display = 'flex';
+glowCursor.style.display = 'block';
+const interval = setInterval(updateTimer, 1000);
+updateTimer();
+}
+
+// Update timer (always shows ???)
+function updateTimer() {
+const now = new Date().getTime();
+const distance = targetDate - now;
+timerElement.innerText = distance < 0 ? "???" : "???";
+
+// Glow effect
+const progress = 1 - (distance / totalDuration);
+const baseGlow = 10, maxGlow = 80;
+const glowIntensity = baseGlow + (maxGlow - baseGlow) * progress;
+const flicker = Math.random() * 5;
+
+timerElement.style.textShadow = `
+0 0 ${glowIntensity + flicker}px #e00000,
+0 0 ${(glowIntensity*2) + flicker}px #e00000,
+0 0 ${(glowIntensity*3) + flicker}px #e00000
+`;
+
+lineElement.style.boxShadow = `
+0 0 ${glowIntensity}px #e00000,
+0 0 ${glowIntensity*2}px #e00000,
+0 0 ${glowIntensity*3}px #e00000
+`;
+}
+
+// Move glowing cursor
+document.addEventListener('mousemove', (e) => {
+glowCursor.style.left = `${e.clientX}px`;
+glowCursor.style.top = `${e.clientY}px`;
+});
+
+// Check if video was already watched
+if (localStorage.getItem('videoWatched') === 'true') {
+introVideo.style.display = 'none';
+document.getElementById('countdownContainer').style.display = 'flex';
+glowCursor.style.display = 'block';
+const interval = setInterval(updateTimer, 1000);
+updateTimer();
+} else {
+introVideo.addEventListener('ended', startCountdown);
+introVideo.addEventListener('play', () => {
+if (introVideo.requestFullscreen) introVideo.requestFullscreen();
+else if (introVideo.webkitRequestFullscreen) introVideo.webkitRequestFullscreen();
+else if (introVideo.msRequestFullscreen) introVideo.msRequestFullscreen();
+});
+}
+</script>
+
+</body>
+</html>
